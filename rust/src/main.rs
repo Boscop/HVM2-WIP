@@ -56,8 +56,9 @@ fn main() {
 
   let mut rwts = 0;
   let mut iter = 0;
+  let mut current_active_pairs = vec![];
   loop {
-    net.reduce();
+    net.reduce(&mut current_active_pairs);
     println!("... actives = {} | len = {}", net.pair.len(), net.node.len());
     //println!("... actives = {} | len = {} | max = {}", net.pair.len(), net.node.len(), max(&net));
     //if net.pair.len() > 700 {

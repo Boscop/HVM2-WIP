@@ -29,8 +29,10 @@ pub struct Node {
   pub p2: Ptr,
 }
 
+#[derive(Default)]
 pub struct Net {
   pub pair: Vec<(Ptr, Ptr)>,
+  pub current_active_pairs: Vec<(Ptr, Ptr)>,
   pub node: Vec<Node>,
   pub free: Vec<Loc>,
   pub rwts: usize,
@@ -49,12 +51,7 @@ impl Node {
 impl Net {
   #[inline(always)]
   pub fn new() -> Self {
-    Net {
-      pair: vec![],
-      node: vec![],
-      free: vec![],
-      rwts: 0,
-    }
+    Self::default()
   }
 
   #[inline(always)]
@@ -70,7 +67,7 @@ impl Net {
   #[inline(always)]
   pub fn free(&mut self, loc: Loc) {
     self.free.push(loc);
-    self.node[loc as usize] = Node::nil();
+    *unsafe { self.node.get_unchecked_mut(loc as usize) } = Node::nil();
   }
 
   #[inline(always)]
@@ -93,27 +90,31 @@ impl Net {
 
   #[inline(always)]
   pub fn link(&mut self, a: Ptr, b: Ptr) {
+    let mut set = false;
     if a.tag == VR1 {
       self.set(a.loc, Port::P1, b);
-    }
-    if a.tag == VR2 {
+      set = true;
+    } else if a.tag == VR2 {
       self.set(a.loc, Port::P2, b);
+      set = true;
     }
     if b.tag == VR1 {
       self.set(b.loc, Port::P1, a);
-    }
-    if b.tag == VR2 {
+      set = true;
+    } else if b.tag == VR2 {
       self.set(b.loc, Port::P2, a);
+      set = true;
     }
-    if a.tag != VR1 && a.tag != VR2 && b.tag != VR1 && b.tag != VR2 {
+    if !set {
       self.pair.push((a, b));
     }
   }
 
   #[inline(always)]
-  pub fn reduce(&mut self) {
-    let pair = std::mem::replace(&mut self.pair, vec![]);
-    for (a, b) in pair {
+  pub fn reduce(&mut self, current_active_pairs: &mut Vec<(Ptr, Ptr)>) {
+    current_active_pairs.clear();
+    current_active_pairs.extend(self.pair.drain(..));
+    for (a, b) in current_active_pairs.drain(..) {
       self.interact(a, b);
     }
   }
