@@ -1,4 +1,4 @@
-use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
+use cudarc::driver::{DeviceRepr, ValidAsZeroBits, sys::CUdeviceptr};
 
 // This code is initially optimized for nVidia RTX 4090
 pub const BLOCK_LOG2: u32 = 8; // log2 of block size
@@ -75,16 +75,24 @@ unsafe impl ValidAsZeroBits for Wire {}
 
 // An interaction net
 #[repr(C)]
+#[derive(Debug)]
 pub struct Net {
-	pub root: Ptr,       // root wire
-	pub blen: u32,       // total bag length (redex count)
-	pub bags: *mut Wire, // redex bags (active pairs)
-	pub node: *mut Node, // memory buffer with all nodes
-	pub gidx: *mut u32,  // aux buffer used on scatter functions
-	pub gmov: *mut Wire, // aux buffer used on scatter functions
-	pub pbks: u32,       // last blocks count used
-	pub done: u32,       // number of completed threads
-	pub rwts: u32,       // number of rewrites performed
+	pub root: Ptr, // root wire
+	pub blen: u32, // total bag length (redex count)
+
+	// pub bags: *mut Wire, // redex bags (active pairs)
+	// pub node: *mut Node, // memory buffer with all nodes
+	// pub gidx: *mut u32,  // aux buffer used on scatter functions
+	// pub gmov: *mut Wire, // aux buffer used on scatter functions
+
+	pub bags: CUdeviceptr, // redex bags (active pairs)
+	pub node: CUdeviceptr, // memory buffer with all nodes
+	pub gidx: CUdeviceptr, // aux buffer used on scatter functions
+	pub gmov: CUdeviceptr, // aux buffer used on scatter functions
+
+	pub pbks: u32, // last blocks count used
+	pub done: u32, // number of completed threads
+	pub rwts: u32, // number of rewrites performed
 }
 
 unsafe impl DeviceRepr for Net {}
