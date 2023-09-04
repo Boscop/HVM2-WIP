@@ -3694,3 +3694,7 @@ int main() {
 
   return 0;
 }
+
+extern "C" int lib_main() {
+  return main();
+}

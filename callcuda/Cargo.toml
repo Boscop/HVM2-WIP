@@ -1,0 +1,8 @@
+[package]
+name = "callcuda"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cudarc = "0.9.14"
+# cudarc = { git = "https://github.com/coreylowman/cudarc" }
