@@ -1,12 +1,21 @@
 use std::env;
 
+// https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
 fn main() {
 	let dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-	println!("cargo:rustc-link-search=native={dir}/../cuda/target");
-	println!("cargo:rustc-link-lib=static=hvm2");
-	link_cuda();
-}
 
+	cc::Build::new()
+		.cuda(true)
+		// .flag("-cudart=shared")
+		/* .flag("-gencode")
+		.flag("arch=compute_61,code=sm_61") */
+		.file(format!("{dir}/../cuda/hvm2.cu"))
+		.compile("hvm2");
+
+	// println!("cargo:rustc-link-lib=cudart");
+	// link_cuda();
+}
+/*
 // From https://github.com/coreylowman/cudarc/blob/main/build.rs
 use std::path::{Path, PathBuf};
 
@@ -19,13 +28,13 @@ fn link_cuda() {
 	let candidates: Vec<PathBuf> = root_candidates().collect();
 
 	let toolkit_root = root_candidates()
-        .find(|path| path.join("include").join("cuda.h").is_file())
-        .unwrap_or_else(|| {
-            panic!(
-                "Unable to find `include/cuda.h` under any of: {:?}. Set the `CUDA_ROOT` environment variable to `$CUDA_ROOT/include/cuda.h` to override path.",
-                candidates
-            )
-        });
+		.find(|path| path.join("include").join("cuda.h").is_file())
+		.unwrap_or_else(|| {
+			panic!(
+				"Unable to find `include/cuda.h` under any of: {:?}. Set the `CUDA_ROOT` environment variable to `$CUDA_ROOT/include/cuda.h` to override path.",
+				candidates
+			)
+		});
 
 	for path in lib_candidates(&toolkit_root) {
 		println!("cargo:rustc-link-search=native={}", path.display());
@@ -60,13 +69,13 @@ fn link_cuda() {
 	#[cfg(feature = "cudnn")]
 	{
 		let cudnn_root = root_candidates()
-            .find(|path| path.join("include").join("cudnn.h").is_file())
-            .unwrap_or_else(|| {
-                panic!(
-                    "Unable to find `include/cudnn.h` under any of: {:?}. Set the `CUDNN_LIB` environment variable to `$CUDNN_LIB/include/cudnn.h` to override path.",
-                    candidates
-                )
-            });
+			.find(|path| path.join("include").join("cudnn.h").is_file())
+			.unwrap_or_else(|| {
+				panic!(
+					"Unable to find `include/cudnn.h` under any of: {:?}. Set the `CUDNN_LIB` environment variable to `$CUDNN_LIB/include/cudnn.h` to override path.",
+					candidates
+				)
+			});
 
 		for path in lib_candidates(&cudnn_root) {
 			println!("cargo:rustc-link-search=native={}", path.display());
@@ -110,3 +119,4 @@ fn lib_candidates(root: &Path) -> Vec<PathBuf> {
 	.filter(|p| p.is_dir())
 	.collect()
 }
+*/

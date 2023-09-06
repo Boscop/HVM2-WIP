@@ -3,5 +3,12 @@ name = "linkcuda"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["driver", "nvrtc"]
+driver = []
+nvrtc = []
+
 [dependencies]
-# libc = "0.2.147"
+
+[build-dependencies]
+cc = "1.0.83"

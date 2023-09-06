@@ -1,5 +1,4 @@
 use std::ffi::c_int;
-// use libc::c_int;
 
 #[link(name = "hvm2", kind = "static")]
 extern "C" {
@@ -7,5 +6,6 @@ extern "C" {
 }
 
 fn main() {
-	println!("{}", unsafe { lib_main() });
+	let ret = unsafe { lib_main() };
+	std::process::exit(ret);
 }

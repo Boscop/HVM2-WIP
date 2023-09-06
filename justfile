@@ -8,8 +8,8 @@ link: compile
 compile: target-dir
     cd cuda/target && nvcc {{NVCC_FLAGS}} -c ../hvm2.cu -o hvm2.obj
 
-lib: target-dir
-    cd cuda/target && nvcc {{NVCC_FLAGS}} -c ../hvm2.cu -o hvm2.lib
+lib: compile
+    cd cuda/target && lib /out:hvm2.lib hvm2.obj
 
 ptx: target-dir
     cd cuda/target && nvcc {{NVCC_FLAGS}} -ptx ../hvm2.cu -o hvm2.ptx

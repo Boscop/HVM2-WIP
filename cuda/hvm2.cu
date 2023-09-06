@@ -3602,7 +3602,7 @@ __host__ void inject_term_m(Net* net) {
 // Main
 // ----
 
-int main() {
+int main_() {
   // Prints device info
   int device;
   cudaDeviceProp prop;
@@ -3695,6 +3695,8 @@ int main() {
   return 0;
 }
 
-extern "C" int lib_main() {
-  return main();
+extern "C" {
+  int lib_main() {
+    return main_();
+  }
 }
