@@ -1,6 +1,6 @@
 use crate::{functions::mkptr, hvm_ffi::*};
 use cudarc::driver::{CudaDevice, CudaSlice, DeviceRepr, DriverError, DevicePtr};
-use std::{slice, sync::Arc};
+use std::{slice, sync::Arc, mem};
 
 pub struct HlNet {
 	pub root: Ptr,         // root wire
@@ -31,7 +31,7 @@ impl HlNet {
 }
 
 pub fn net_to_device(net: &HlNet, dev: &Arc<CudaDevice>) -> Result<CudaSlice<Net>, DriverError> {
-	// TODO: Async copy?
+	// TODO: Async copy? (Requires passing owned Vec)
 	let device_bags = dev.htod_sync_copy(&net.bags)?;
 	let device_node = dev.htod_sync_copy(&net.node)?;
 	let device_gidx = dev.htod_sync_copy(&net.gidx)?;
@@ -51,6 +51,12 @@ pub fn net_to_device(net: &HlNet, dev: &Arc<CudaDevice>) -> Result<CudaSlice<Net
 
 	let device_net = dev.htod_sync_copy(slice::from_ref(&temp_net))?;
 
+    // TODO: Keep these alive in the returned value
+    mem::forget(device_bags);
+    mem::forget(device_node);
+    mem::forget(device_gidx);
+    mem::forget(device_gmov);
+
 	Ok(device_net)
 }
 
@@ -65,9 +71,7 @@ pub fn net_to_host(dev: &Arc<CudaDevice>, device_net: CudaSlice<Net>) -> Result<
 	) -> Result<(), DriverError> {
 		assert_eq!(src_len, dst.len());
 		dev.bind_to_thread()?;
-		println!("memcpy_dtoh_sync: {:#?}", src);
 		unsafe { result::memcpy_dtoh_sync(dst, src) }?;
-		println!("synchronize: {:#?}", src);
 		dev.synchronize()
 	}
 
@@ -85,8 +89,6 @@ pub fn net_to_host(dev: &Arc<CudaDevice>, device_net: CudaSlice<Net>) -> Result<
 	// let mut net_vec: Vec<Net> = dev.sync_reclaim(device_net)?;
 	let mut net_vec = dev.dtoh_sync_copy(&device_net)?;
 	let net = net_vec.remove(0);
-
-	println!("net: {:#?}", net);
 
 	// let bags = vec![Wire::default(); BAGS_SIZE as usize];
 	// let node = vec![Node::default(); NODE_SIZE as usize];
