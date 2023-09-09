@@ -3,13 +3,15 @@ use std::env;
 // https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
 fn main() {
 	let dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let inet_cuda_runtime_path = format!("{dir}/../cuda/hvm2.cu");
+    println!("cargo:rerun-if-changed={inet_cuda_runtime_path}");
 
 	cc::Build::new()
 		.cuda(true)
 		// .flag("-cudart=shared")
 		/* .flag("-gencode")
 		.flag("arch=compute_61,code=sm_61") */
-		.file(format!("{dir}/../cuda/hvm2.cu"))
+		.file(inet_cuda_runtime_path)
 		.compile("hvm2");
 
 	// println!("cargo:rustc-link-lib=cudart");
